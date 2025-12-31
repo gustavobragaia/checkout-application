@@ -1,10 +1,13 @@
+import "dotenv/config";
 import Fastify from "fastify";
+import { authRoutes } from "./modules/auth/auth.route";
+import jwtPlugin from "./plugins/jwt";
+import authPlugin from "./plugins/auth";
 
-const app = Fastify();
-
-app.get("/health", async () => {
-  return { ok: true };
-});
+const app = Fastify({ logger: true });
+app.register(jwtPlugin);
+app.register(authPlugin);
+app.register(authRoutes);
 
 const port = Number(process.env.PORT ?? 3001);
 

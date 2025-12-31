@@ -14,7 +14,28 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Healthcheck {
-  id        String   @id @default(uuid())
-  createdAt DateTime @default(now())
+enum Role {
+  ADMIN
+  SELLER
+}
+
+model User {
+  id String @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  modifiedAt   DateTime @updatedAt
+
+  roles UserRole[]
+}
+
+model UserRole {
+  userId String
+  role Role
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, role])
+  @@index([role])
 }

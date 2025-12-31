@@ -2,6 +2,7 @@ import { create } from "node:domain";
 import { prisma } from "../../lib/prisma";
 import bcrypt from "bcrypt";
 import { id } from "zod/locales";
+import { CustomError } from "../../errors/custom-error";
 
 interface RegisterInput {
   email: string;
@@ -14,7 +15,7 @@ export async function registerUser(input: RegisterInput) {
     where: { email },
   });
   if (emailAlreadyExist) {
-    throw new Error("Email Already in use");
+    throw new CustomError("Email Already in use", 409);
   }
 
   const passwordHash = await bcrypt.hash(input.password, 10);
@@ -58,11 +59,11 @@ export async function loginUser(input: LoginInput) {
     },
   });
   if (!user) {
-    throw new Error("Invalid Credentials");
+    throw new CustomError("Invalid Credentials", 401);
   }
   const passwordOk = await bcrypt.compare(input.password, user.passwordHash);
   if (!passwordOk) {
-    throw new Error("Invalid Credentials");
+    throw new CustomError("Invalid Credentials", 401);
   }
 
   return {

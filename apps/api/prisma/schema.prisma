@@ -20,22 +20,75 @@ enum Role {
 }
 
 model User {
-  id String @id @default(uuid())
+  id           String   @id @default(uuid())
   name         String
   email        String   @unique
   passwordHash String
   createdAt    DateTime @default(now())
   modifiedAt   DateTime @updatedAt
 
-  roles UserRole[]
+  products Product[]
+  roles    UserRole[]
 }
 
 model UserRole {
   userId String
-  role Role
+  role   Role
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([userId, role])
   @@index([role])
+}
+
+enum Currency {
+  BRL
+  USD
+  EUR
+  CAD
+}
+
+enum ProductCapabilityType {
+  PAY_PIX
+  PAY_CARD
+  PAY_CRYPTO
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  name        String
+  sellerId    String
+  description String?
+  priceCents  Int
+  currency    Currency @default(BRL)
+
+  isArchived Boolean   @default(false)
+  archivedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  capabilities ProductCapability[]
+
+  seller User @relation(fields: [sellerId], references: [id], onDelete: Restrict)
+
+  @@index([sellerId])
+  @@index([sellerId, isArchived])
+}
+
+model ProductCapability {
+  id        String                @id @default(uuid())
+  productId String
+  type      ProductCapabilityType
+  enabled   Boolean               @default(true)
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, type])
+  @@index([productId])
 }

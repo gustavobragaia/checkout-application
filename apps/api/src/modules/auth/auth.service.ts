@@ -1,7 +1,5 @@
-import { create } from "node:domain";
 import { prisma } from "../../lib/prisma";
 import bcrypt from "bcrypt";
-import { id } from "zod/locales";
 import { CustomError } from "../../errors/custom-error";
 
 interface RegisterInput {

@@ -46,15 +46,29 @@ export async function resolvePublicCheckoutBySlug(input: { slug: string }) {
   if (!productInformation)
     throw new CustomError("Checkout link not found", 404);
   if (!productInformation.isActive)
-    throw new CustomError("Product inactive", 404);
+    // TODO(EPIC 3.5): log CHECKOUT_BLOCKED reason=LINK_DISABLED (non-blocking)
+
+    throw new CustomError("Checkout inactive", 404);
+  if (
+    productInformation.expiresAt &&
+    productInformation.expiresAt.getTime() <= Date.now()
+  ) {
+    // TODO(EPIC 3.5): log CHECKOUT_BLOCKED reason=LINK_EXPIRED (non-blocking)
+
+    throw new CustomError("Checkout link expired", 410);
+  }
+
   if (productInformation.product.isArchived)
+    // TODO(EPIC 3.5): log CHECKOUT_BLOCKED reason=PRODUCT_ARCHIVED (non-blocking)
+
     throw new CustomError("Product is archived", 410);
 
+  // TODO(EPIC 3.5): log CHECKOUT_VIEW here (non-blocking)
   return {
     //returning only needed fields
     slug: productInformation.slugUrl,
     product: {
-      id: productInformation.id,
+      id: productInformation.product.id,
       name: productInformation.product.name,
       description: productInformation.product.description,
       priceCents: productInformation.product.priceCents,

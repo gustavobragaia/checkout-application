@@ -70,8 +70,9 @@ model Product {
 
   capabilities ProductCapability[]
 
-  seller        User           @relation(fields: [sellerId], references: [id], onDelete: Restrict)
-  checkoutLinks CheckoutLink[]
+  seller         User            @relation(fields: [sellerId], references: [id], onDelete: Restrict)
+  checkoutLinks  CheckoutLink[]
+  checkoutEvents CheckoutEvent[]
 
   @@index([sellerId])
   @@index([sellerId, isArchived])
@@ -105,10 +106,65 @@ model CheckoutLink {
   isActive  Boolean   @default(true)
   expiresAt DateTime?
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  checkoutEvents CheckoutEvent[]
 
   @@index([productId])
   @@index([isActive])
   @@index([expiresAt])
 }
+
+// ------ FOR ANALYTICS ------
+enum CheckoutEventType {
+  CHECKOUT_VIEW
+  CHECKOUT_BLOCKED
+  PAYMENT_METHOD_SELECTED
+}
+
+enum CheckoutBlockedReason {
+  LINK_NOT_FOUND
+  LINK_DISABLED
+  LINK_EXPIRED
+  PRODUCT_ARCHIVED
+}
+
+enum PaymentMethodType {
+  PAY_PIX
+  PAY_CARD
+  PAY_CRYPTO
+}
+
+model CheckoutEvent {
+  id String @id @default(uuid())
+
+  checkoutLinkId String
+  checkoutLink   CheckoutLink @relation(fields: [checkoutLinkId], references: [id], onDelete: Cascade)
+
+  // redundante, mas acelera analytics por produto sem join pesado
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  type CheckoutEventType
+
+  // campos opcionais por tipo
+  blockedReason CheckoutBlockedReason?
+  paymentMethod PaymentMethodType?
+
+  // metadata geral pra evoluir sem migração (utm, device, extra)
+  metadata Json?
+
+  // privacidade
+  ipHash    String?
+  userAgent String?
+  referrer  String?
+
+  createdAt DateTime @default(now())
+
+  @@index([checkoutLinkId, createdAt])
+  @@index([productId, createdAt])
+  @@index([type, createdAt])
+  @@index([createdAt])
+}
+
+// ------ FINISH FOR ANALYTICS ------

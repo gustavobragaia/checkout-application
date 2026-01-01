@@ -8,7 +8,6 @@ interface CreateProductInput {
   priceCents: number;
   currency: "BRL" | "USD" | "CAD" | "EUR";
 }
-
 export async function createProduct(input: CreateProductInput) {
   return prisma.product.create({
     data: {

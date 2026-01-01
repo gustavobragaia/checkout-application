@@ -4,12 +4,16 @@ import { authRoutes } from "./modules/auth/auth.route";
 import jwtPlugin from "./plugins/jwt";
 import authPlugin from "./plugins/auth";
 import { productRoutes } from "./modules/products/products.route";
+import { checkoutPublicRoutes } from "./modules/checkout-links/public-checkout.routes";
+import { checkoutProtectedRoutes } from "./modules/checkout-links/checkout-links.routes";
 
 const app = Fastify({ logger: true });
 app.register(jwtPlugin);
 app.register(authPlugin);
 app.register(authRoutes);
 app.register(productRoutes, { prefix: "/api/v1" });
+app.register(checkoutProtectedRoutes, { prefix: "/api/v1" });
+app.register(checkoutPublicRoutes);
 
 const port = Number(process.env.PORT ?? 3001);
 

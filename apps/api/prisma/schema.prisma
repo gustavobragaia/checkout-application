@@ -70,7 +70,8 @@ model Product {
 
   capabilities ProductCapability[]
 
-  seller User @relation(fields: [sellerId], references: [id], onDelete: Restrict)
+  seller        User           @relation(fields: [sellerId], references: [id], onDelete: Restrict)
+  checkoutLinks CheckoutLink[]
 
   @@index([sellerId])
   @@index([sellerId, isArchived])
@@ -91,4 +92,23 @@ model ProductCapability {
 
   @@unique([productId, type])
   @@index([productId])
+}
+
+model CheckoutLink {
+  id String @id @default(uuid())
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  slugUrl String @unique
+
+  isActive  Boolean   @default(true)
+  expiresAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([productId])
+  @@index([isActive])
+  @@index([expiresAt])
 }

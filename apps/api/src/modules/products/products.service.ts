@@ -36,6 +36,19 @@ export async function listProducts(input: ListProductsInput) {
   return listOfProducts;
 }
 
+interface GetSingleProductInput {
+  sellerId: string;
+  productId: string;
+}
+export async function getSingleProduct(input: GetSingleProductInput) {
+  return await prisma.product.findUnique({
+    where: { id: input.productId },
+    include: {
+      capabilities: true,
+    },
+  });
+}
+
 interface UpdateProductInput {
   sellerId: string;
   productId: string;

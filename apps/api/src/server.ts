@@ -9,7 +9,7 @@ const app = Fastify({ logger: true });
 app.register(jwtPlugin);
 app.register(authPlugin);
 app.register(authRoutes);
-app.register(productRoutes);
+app.register(productRoutes, { prefix: "/api/v1" });
 
 const port = Number(process.env.PORT ?? 3001);
 

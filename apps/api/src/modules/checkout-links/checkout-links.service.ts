@@ -66,7 +66,12 @@ export async function resolvePublicCheckoutBySlug(input: { slug: string }) {
   // TODO(EPIC 3.5): log CHECKOUT_VIEW here (non-blocking)
   return {
     //returning only needed fields
-    slug: productInformation.slugUrl,
+    checkoutLink: {
+      id: productInformation.id,
+      slugUrl: productInformation.slugUrl,
+      expiresAt: productInformation.expiresAt ?? null,
+      isActive: productInformation.isActive,
+    },
     product: {
       id: productInformation.product.id,
       name: productInformation.product.name,

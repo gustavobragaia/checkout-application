@@ -70,9 +70,8 @@ model Product {
 
   capabilities ProductCapability[]
 
-  seller         User            @relation(fields: [sellerId], references: [id], onDelete: Restrict)
-  checkoutLinks  CheckoutLink[]
-  checkoutEvents CheckoutEvent[]
+  seller        User           @relation(fields: [sellerId], references: [id], onDelete: Restrict)
+  checkoutLinks CheckoutLink[]
 
   @@index([sellerId])
   @@index([sellerId, isArchived])
@@ -106,65 +105,48 @@ model CheckoutLink {
   isActive  Boolean   @default(true)
   expiresAt DateTime?
 
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  checkoutEvents CheckoutEvent[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  checkoutSessions CheckoutSession[]
 
   @@index([productId])
   @@index([isActive])
   @@index([expiresAt])
 }
 
-// ------ FOR ANALYTICS ------
-enum CheckoutEventType {
-  CHECKOUT_VIEW
-  CHECKOUT_BLOCKED
-  PAYMENT_METHOD_SELECTED
-}
-
-enum CheckoutBlockedReason {
-  LINK_NOT_FOUND
-  LINK_DISABLED
-  LINK_EXPIRED
-  PRODUCT_ARCHIVED
-}
-
-enum PaymentMethodType {
-  PAY_PIX
-  PAY_CARD
-  PAY_CRYPTO
-}
-
-model CheckoutEvent {
-  id String @id @default(uuid())
+model CheckoutSession {
+  id String @id @default(cuid())
 
   checkoutLinkId String
   checkoutLink   CheckoutLink @relation(fields: [checkoutLinkId], references: [id], onDelete: Cascade)
 
-  // redundante, mas acelera analytics por produto sem join pesado
-  productId String
-  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  status CheckoutSessionStatus @default(CREATED)
 
-  type CheckoutEventType
+  customerName  String?
+  customerEmail String?
+  customerPhone String?
 
-  // campos opcionais por tipo
-  blockedReason CheckoutBlockedReason?
-  paymentMethod PaymentMethodType?
+  selectedMethod PaymentMethod?
 
-  // metadata geral pra evoluir sem migração (utm, device, extra)
-  metadata Json?
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
-  // privacidade
-  ipHash    String?
-  userAgent String?
-  referrer  String?
-
-  createdAt DateTime @default(now())
-
-  @@index([checkoutLinkId, createdAt])
-  @@index([productId, createdAt])
-  @@index([type, createdAt])
-  @@index([createdAt])
+  @@index([checkoutLinkId])
+  @@index([customerEmail])
 }
 
-// ------ FINISH FOR ANALYTICS ------
+enum CheckoutSessionStatus {
+  CREATED
+  CUSTOMER_SET
+  PAYMENT_SELECTED
+  EXPIRED
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  PIX
+  CARD
+  CRYPTO
+}

@@ -4,7 +4,7 @@ import { resolvePublicCheckoutBySlug } from "./checkout-links.service";
 import {
   getCheckoutSessionCookieName,
   getOrCreateCheckoutSession,
-} from "./checkout-session.service";
+} from "./checkout-session/checkout-session.service";
 
 export async function checkoutPublicRoutes(app: FastifyInstance) {
   app.get("/pay/:slug", async (req, res) => {

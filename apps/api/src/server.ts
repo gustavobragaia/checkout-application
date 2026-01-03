@@ -7,7 +7,7 @@ import authPlugin from "./plugins/auth";
 import { productRoutes } from "./modules/products/products.route";
 import { checkoutPublicRoutes } from "./modules/checkout-links/public-checkout.routes";
 import { checkoutProtectedRoutes } from "./modules/checkout-links/checkout-links.routes";
-import { checkoutSessionPublicRoutes } from "./modules/checkout-links/checkout-session.routes";
+import { checkoutSessionPublicRoutes } from "./modules/checkout-links/checkout-session/checkout-session.routes";
 
 const app = Fastify({ logger: true });
 app.register(fastifyCookie);

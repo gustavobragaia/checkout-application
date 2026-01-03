@@ -1,21 +1,10 @@
 import { FastifyInstance } from "fastify";
 import { z } from "zod";
-import { prisma } from "../../lib/prisma";
-import { SlugParamsSchema } from "./checkout-links.schema";
-import { resolvePublicCheckoutBySlug } from "./checkout-links.service";
+import { prisma } from "../../../lib/prisma";
+import { SlugParamsSchema } from "../checkout-links.schema";
+import { resolvePublicCheckoutBySlug } from "../checkout-links.service";
 import { getCheckoutSessionCookieName } from "./checkout-session.service";
-
-/* ----------------------------- SCHEMAS ----------------------------- */
-
-const CustomerSchema = z.object({
-  name: z.string().min(2),
-  email: z.string().email(),
-  phone: z.string().min(8).max(20),
-});
-
-const MethodSchema = z.object({
-  method: z.enum(["PIX", "CARD", "CRYPTO"]),
-});
+import { CustomerSchema, MethodSchema } from "./checkout-session.schema";
 
 /* ----------------------------- HELPERS ------------------------------ */
 

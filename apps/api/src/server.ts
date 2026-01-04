@@ -8,6 +8,8 @@ import { productRoutes } from "./modules/products/products.route";
 import { checkoutPublicRoutes } from "./modules/checkout-links/public-checkout.routes";
 import { checkoutProtectedRoutes } from "./modules/checkout-links/checkout-links.routes";
 import { checkoutSessionPublicRoutes } from "./modules/checkout-links/checkout-session/checkout-session.routes";
+import { pixPublicRoutes } from "./modules/pix/pix.route";
+import { pixWebhookRoutes } from "./modules/pix/pix.webhook.route";
 
 const app = Fastify({ logger: true });
 app.register(fastifyCookie);
@@ -18,6 +20,8 @@ app.register(productRoutes, { prefix: "/api/v1" });
 app.register(checkoutProtectedRoutes, { prefix: "/api/v1" });
 app.register(checkoutPublicRoutes);
 app.register(checkoutSessionPublicRoutes);
+app.register(pixPublicRoutes, { prefix: "/api" });
+app.register(pixWebhookRoutes);
 
 const port = Number(process.env.PORT ?? 3001);
 

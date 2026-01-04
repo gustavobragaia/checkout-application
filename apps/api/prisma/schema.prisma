@@ -131,6 +131,7 @@ model CheckoutSession {
   expiresAt DateTime?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+  payment   Payment?
 
   @@index([checkoutLinkId])
   @@index([customerEmail])
@@ -149,4 +150,54 @@ enum PaymentMethod {
   PIX
   CARD
   CRYPTO
+}
+
+model Payment {
+  id        String          @id @default(uuid())
+  sessionId String          @unique
+  session   CheckoutSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  method   PaymentMethod
+  status   PaymentStatus   @default(PENDING)
+  provider PaymentProvider
+
+  //snapshot of moment value
+  amountCents Int
+  currency    Currency @default(BRL)
+
+  //provider id 
+  providerPaymentId String? @unique
+
+  //payment methods
+  pix PixPayment?
+  //card CardPayment?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PixPayment {
+  paymentId String  @id
+  payment   Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+
+  //payload pix
+  copyPaste String
+  qrCode    String?
+  expiresAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum PaymentProvider {
+  MERCADO_PAGO
+  MANUAL
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  CANCELED
+  EXPIRED
 }

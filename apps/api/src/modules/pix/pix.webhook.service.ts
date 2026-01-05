@@ -1,4 +1,3 @@
-import { FastifyRequest } from "fastify";
 import { prisma } from "../../lib/prisma";
 import { MercadoPagoProvider } from "./providers/mercado-pago.provider";
 
@@ -7,24 +6,7 @@ const mpProvider = new MercadoPagoProvider(
   process.env.MERCADO_PAGO_ACCESS_TOKEN!,
 );
 
-type MercadoPagoWebhookBody = {
-  data?: { id?: string };
-  id?: string;
-};
-
-type MercadoPagoWebhookQuery = {
-  id?: string;
-  topic?: string;
-  type?: string;
-  "data.id"?: string;
-};
-
-export type MercadoPagoWebhookRequest = FastifyRequest<{
-  Body: MercadoPagoWebhookBody;
-  Querystring: MercadoPagoWebhookQuery;
-}>;
-
-function extractProviderPaymentId(req: MercadoPagoWebhookRequest) {
+function extractProviderPaymentId(req: any) {
   const body = req.body ?? {};
   const dataId = body?.data?.id; // id do PAGAMENTO
   const eventId = body?.id; // id do EVENTO (não usar!)
@@ -40,7 +22,7 @@ function extractProviderPaymentId(req: MercadoPagoWebhookRequest) {
 }
 
 export const pixWebhookService = {
-  async handleMercadoPagoWebhook(req: MercadoPagoWebhookRequest) {
+  async handleMercadoPagoWebhook(req: any) {
     const providerPaymentId = extractProviderPaymentId(req);
     if (!providerPaymentId) {
       req.log.warn("pix webhook: missing providerPaymentId");

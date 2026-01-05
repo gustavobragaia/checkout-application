@@ -1,14 +1,8 @@
-import { FastifyInstance, FastifyReply } from "fastify";
-import {
-  MercadoPagoWebhookRequest,
-  pixWebhookService,
-} from "./pix.webhook.service";
+import { FastifyInstance } from "fastify";
+import { pixWebhookService } from "./pix.webhook.service";
 
 export async function pixWebhookRoutes(app: FastifyInstance) {
-  const handler = async (
-    req: MercadoPagoWebhookRequest,
-    res: FastifyReply,
-  ) => {
+  const handler = async (req: any, res: any) => {
     req.log.info({ body: req.body, query: req.query }, "pix webhook received");
 
     try {

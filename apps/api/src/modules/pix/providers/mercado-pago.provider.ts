@@ -3,17 +3,6 @@ import { MercadoPagoConfig, Payment } from "mercadopago";
 import { CustomError } from "../../../errors/custom-error";
 import "dotenv/config";
 
-type PaymentResponse = {
-  id?: string | number;
-  point_of_interaction?: {
-    transaction_data?: {
-      qr_code?: string;
-      qr_code_base64?: string;
-      date_of_expiration?: string;
-    };
-  };
-};
-
 export class MercadoPagoProvider implements PixProvider {
   private payments: Payment;
 
@@ -23,11 +12,9 @@ export class MercadoPagoProvider implements PixProvider {
   }
 
   //method to use in webhook and get if payment was complete
-  async getPayment(providerPaymentId: string): Promise<PaymentResponse> {
-    const res = (await this.payments.get({
-      id: Number(providerPaymentId),
-    })) as PaymentResponse;
-    return res;
+  async getPayment(providerPaymentId: string): Promise<any> {
+    const res = await this.payments.get({ id: Number(providerPaymentId) });
+    return res as any;
   }
 
   async createCharge(input: {
@@ -51,11 +38,11 @@ export class MercadoPagoProvider implements PixProvider {
         requestOptions: { idempotencyKey: input.idempotencyKey },
       });
 
-      const data = createPix as PaymentResponse;
+      const data: any = createPix;
       const tx = data.point_of_interaction?.transaction_data;
-      const providerPaymentId = data?.id ? String(data.id) : "";
-      const copyPaste = tx?.qr_code ?? "";
-      const qrCode = tx?.qr_code_base64 ?? "";
+      const providerPaymentId = String(data?.id);
+      const copyPaste = tx?.qr_code;
+      const qrCode = tx?.qr_code_base64;
       // date_of_expiration vem como string ISO
       const expiresAt = tx?.date_of_expiration
         ? new Date(tx.date_of_expiration)
@@ -104,20 +91,16 @@ export class MercadoPagoProvider implements PixProvider {
 
       return {
         providerPaymentId,
-        copyPaste: copyPaste!,
-        qrCode: qrCode!,
-        expiresAt: expiresAt!,
+        copyPaste,
+        qrCode,
+        expiresAt,
       };
-    } catch (err: unknown) {
+    } catch (err: any) {
       // Mercado Pago SDK costuma trazer detalhes em err.cause
       const detail =
-        typeof err === "object" && err !== null
-          ? // @ts-expect-error - sdk error shape is loosely typed
-            err?.cause?.[0]?.description ||
-            // @ts-expect-error - sdk error shape is loosely typed
-            err?.message ||
-            JSON.stringify(err, null, 2)
-          : String(err);
+        err?.cause?.[0]?.description ||
+        err?.message ||
+        JSON.stringify(err, null, 2);
       throw new CustomError(`Mercado Pago error: ${detail}`, 502);
     }
   }

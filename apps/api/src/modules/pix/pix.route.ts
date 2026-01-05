@@ -17,7 +17,7 @@ export async function pixPublicRoutes(app: FastifyInstance) {
   });
 
   //get status of pix
-  app.get("/session/pay/", async (req, res) => {
+  app.get("/session/pay", async (req, res) => {
     const sessionId = req.cookies?.[cookieName];
     if (!sessionId) {
       throw new CustomError("Missing SessionId to generate PIX", 401);

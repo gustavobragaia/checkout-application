@@ -1,4 +1,3 @@
-import { CustomError } from "../../errors/custom-error";
 import { prisma } from "../../lib/prisma";
 import { MercadoPagoProvider } from "./providers/mercado-pago.provider";
 
@@ -8,19 +7,16 @@ const mpProvider = new MercadoPagoProvider(
 );
 
 function extractProviderPaymentId(req: any) {
-  // 1) payload  body (format data.id)
-  const bodyId = req.body?.data?.id;
-  console.log(req.body);
-  if (bodyId) return String(bodyId);
-
-  // 2) querystring (format ?id=...&topic=payment)
+  const body = req.body ?? {};
+  const dataId = body?.data?.id; // id do PAGAMENTO
+  const eventId = body?.id; // id do EVENTO (não usar!)
   const q = req.query ?? {};
-  if (q.id) return String(q.id);
 
-  // 3) querystring (format ?data.id=...&type=payment)
-  if (q["data.id"]) {
-    return String(q["data.id"]);
-  }
+  req.log?.info?.({ dataId, eventId, q }, "mp webhook ids");
+
+  if (dataId) return String(dataId);
+  if (q.id) return String(q.id);
+  if (q["data.id"]) return String(q["data.id"]);
 
   return null;
 }

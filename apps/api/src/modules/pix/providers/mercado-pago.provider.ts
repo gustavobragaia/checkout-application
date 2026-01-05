@@ -29,15 +29,12 @@ export class MercadoPagoProvider implements PixProvider {
         body: {
           transaction_amount: input.amountCents / 100,
           description: input.description,
-        payment_method_id: "pix",
-        payer: {
-          email: input.payerEmail,
+          payment_method_id: "pix",
+          payer: {
+            email: input.payerEmail,
+          },
+          notification_url: process.env.MERCADO_PAGO_WEBHOOK_URL,
         },
-        notification_url:
-          process.env.MERCADO_PAGO_WEBHOOK_URL ||
-          process.env.MP_WEBHOOK_URL ||
-          undefined,
-      },
         requestOptions: { idempotencyKey: input.idempotencyKey },
       });
 

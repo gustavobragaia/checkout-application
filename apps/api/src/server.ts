@@ -1,6 +1,7 @@
 import "dotenv/config";
 import Fastify from "fastify";
 import fastifyCookie from "@fastify/cookie";
+import fastifyFormbody from "@fastify/formbody";
 import { authRoutes } from "./modules/auth/auth.route";
 import jwtPlugin from "./plugins/jwt";
 import authPlugin from "./plugins/auth";
@@ -13,6 +14,7 @@ import { pixWebhookRoutes } from "./modules/pix/pix.webhook.route";
 
 const app = Fastify({ logger: true });
 app.register(fastifyCookie);
+app.register(fastifyFormbody);
 app.register(jwtPlugin);
 app.register(authPlugin);
 app.register(authRoutes);

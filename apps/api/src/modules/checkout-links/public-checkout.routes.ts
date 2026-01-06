@@ -15,9 +15,8 @@ export async function checkoutPublicRoutes(app: FastifyInstance) {
 
       // Cria/usa sessão via cookie
       const cookieName = getCheckoutSessionCookieName();
-      const cookieSessionId = (req.cookies as any)?.[cookieName] as
-        | string
-        | undefined;
+      const cookies = req.cookies as Record<string, string | undefined> | undefined;
+      const cookieSessionId = cookies?.[cookieName];
 
       const session = await getOrCreateCheckoutSession({
         checkoutLinkId: payload.checkoutLink.id,

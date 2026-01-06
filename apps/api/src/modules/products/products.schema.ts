@@ -34,7 +34,7 @@ export const PutCapabilitiesBodySchema = z.object({
     z.object({
       type: CapabilityTypeSchema,
       enabled: z.boolean(),
-      metadata: z.any().optional(),
+      metadata: z.unknown().optional(),
     }),
   ),
 });

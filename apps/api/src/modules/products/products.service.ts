@@ -1,5 +1,9 @@
 import { CustomError } from "../../errors/custom-error";
 import { prisma } from "../../lib/prisma";
+import type { Prisma } from "@prisma/client";
+import type { InputJsonValue } from "@prisma/client/runtime/library";
+
+type CapabilityMetadata = InputJsonValue | null;
 
 interface CreateProductInput {
   sellerId: string;
@@ -81,7 +85,7 @@ interface PutProductCapabilitiesInput {
   capabilities: {
     type: "PAY_PIX" | "PAY_CARD" | "PAY_CRYPTO";
     enabled: boolean;
-    metadata: any;
+    metadata?: CapabilityMetadata;
   }[];
 }
 export async function putProductCapabilities(
@@ -97,16 +101,22 @@ export async function putProductCapabilities(
 
   return prisma.$transaction(async (tx) => {
     for (const cap of input.capabilities) {
+      const metadataValue =
+        cap.metadata === undefined
+          ? undefined
+          : ((cap.metadata ?? null) as
+              | Prisma.NullableJsonNullValueInput
+              | InputJsonValue);
       await tx.productCapability.upsert({
         where: {
           productId_type: { productId: input.productId, type: cap.type },
         },
-        update: { enabled: cap.enabled, metadata: cap.metadata ?? null },
+        update: { enabled: cap.enabled, metadata: metadataValue },
         create: {
           productId: input.productId,
           type: cap.type,
           enabled: cap.enabled,
-          metadata: cap.metadata ?? null,
+          metadata: metadataValue,
         },
       });
     }

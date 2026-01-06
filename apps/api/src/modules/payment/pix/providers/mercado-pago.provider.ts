@@ -1,7 +1,21 @@
 import { PixChargeResult, PixProvider } from "../pix.provider";
 import { MercadoPagoConfig, Payment } from "mercadopago";
-import { CustomError } from "../../../errors/custom-error";
+import { CustomError } from "../../../../errors/custom-error";
 import "dotenv/config";
+
+type PaymentGetResponse = Awaited<ReturnType<Payment["get"]>>;
+type PaymentCreateResponse = Awaited<ReturnType<Payment["create"]>>;
+type PixTransactionData = {
+  qr_code?: string;
+  qr_code_base64?: string;
+  date_of_expiration?: string;
+};
+type PixCreatePayload = PaymentCreateResponse & {
+  id?: string | number;
+  point_of_interaction?: {
+    transaction_data?: PixTransactionData;
+  };
+};
 
 export class MercadoPagoProvider implements PixProvider {
   private payments: Payment;
@@ -12,9 +26,8 @@ export class MercadoPagoProvider implements PixProvider {
   }
 
   //method to use in webhook and get if payment was complete
-  async getPayment(providerPaymentId: string): Promise<any> {
-    const res = await this.payments.get({ id: Number(providerPaymentId) });
-    return res as any;
+  async getPayment(providerPaymentId: string): Promise<PaymentGetResponse> {
+    return this.payments.get({ id: Number(providerPaymentId) });
   }
 
   async createCharge(input: {
@@ -38,15 +51,14 @@ export class MercadoPagoProvider implements PixProvider {
         requestOptions: { idempotencyKey: input.idempotencyKey },
       });
 
-      const data: any = createPix;
+      const data: PixCreatePayload = createPix;
       const tx = data.point_of_interaction?.transaction_data;
-      const providerPaymentId = String(data?.id);
-      const copyPaste = tx?.qr_code;
-      const qrCode = tx?.qr_code_base64;
+      const providerPaymentId = data?.id ? String(data.id) : "";
+      const copyPaste = tx?.qr_code ?? "";
+      const qrCode = tx?.qr_code_base64 ?? "";
       // date_of_expiration vem como string ISO
-      const expiresAt = tx?.date_of_expiration
-        ? new Date(tx.date_of_expiration)
-        : null;
+      const expiresAtRaw = tx?.date_of_expiration;
+      const expiresAt = expiresAtRaw ? new Date(expiresAtRaw) : null;
 
       const missing: string[] = [];
       if (!providerPaymentId) missing.push("id");
@@ -76,8 +88,8 @@ export class MercadoPagoProvider implements PixProvider {
           // se só faltou expiresAt, usamos o fallback
           return {
             providerPaymentId,
-            copyPaste: copyPaste ?? "",
-            qrCode: qrCode ?? "",
+            copyPaste,
+            qrCode,
             expiresAt: fallbackExpiration,
           };
         }
@@ -93,14 +105,18 @@ export class MercadoPagoProvider implements PixProvider {
         providerPaymentId,
         copyPaste,
         qrCode,
-        expiresAt,
+        expiresAt: expiresAt ?? new Date(),
       };
-    } catch (err: any) {
+    } catch (err) {
       // Mercado Pago SDK costuma trazer detalhes em err.cause
+      const mpError = err as {
+        cause?: Array<{ description?: string }>;
+        message?: string;
+      };
       const detail =
-        err?.cause?.[0]?.description ||
-        err?.message ||
-        JSON.stringify(err, null, 2);
+        mpError?.cause?.[0]?.description ||
+        mpError?.message ||
+        JSON.stringify(mpError, null, 2);
       throw new CustomError(`Mercado Pago error: ${detail}`, 502);
     }
   }

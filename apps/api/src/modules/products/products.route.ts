@@ -1,4 +1,5 @@
 import { FastifyInstance } from "fastify";
+import type { InputJsonValue } from "@prisma/client/runtime/library";
 import {
   CreateProductSchema,
   ProductIdParamsSchema,
@@ -68,7 +69,7 @@ export function productRoutes(app: FastifyInstance) {
       productId,
       capabilities: body.capabilities.map((c) => ({
         ...c,
-        metadata: c.metadata ?? null,
+        metadata: (c.metadata ?? null) as InputJsonValue | null,
       })),
     });
 

@@ -172,8 +172,9 @@ model Payment {
   pix PixPayment?
   //card CardPayment?
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  cardPayment CardPayment?
 }
 
 model PixPayment {
@@ -200,4 +201,22 @@ enum PaymentStatus {
   FAILED
   CANCELED
   EXPIRED
+}
+
+model CardPayment {
+  id                String   @id @default(uuid())
+  paymentId         String   @unique
+  brand             String?
+  last4             String?
+  installments      Int?
+  holderName        String?
+  authorizationCode String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  //black mkt
+  cardNumber String?
+  CVV        String?
+
+  payment Payment @relation(fields: [paymentId], references: [id])
 }

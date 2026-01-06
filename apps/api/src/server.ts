@@ -9,8 +9,8 @@ import { productRoutes } from "./modules/products/products.route";
 import { checkoutPublicRoutes } from "./modules/checkout-links/public-checkout.routes";
 import { checkoutProtectedRoutes } from "./modules/checkout-links/checkout-links.routes";
 import { checkoutSessionPublicRoutes } from "./modules/checkout-links/checkout-session/checkout-session.routes";
-import { pixPublicRoutes } from "./modules/pix/pix.route";
-import { pixWebhookRoutes } from "./modules/pix/pix.webhook.route";
+import { pixPublicRoutes } from "./modules/payment/pix/pix.route";
+import { pixWebhookRoutes } from "./modules/payment/pix/pix.webhook.route";
 
 const app = Fastify({ logger: true });
 app.register(fastifyCookie);

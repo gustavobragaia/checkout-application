@@ -1,11 +1,11 @@
-import { prisma } from "../../lib/prisma";
-import { CustomError } from "../../errors/custom-error";
+import { prisma } from "../../../lib/prisma";
+import { CustomError } from "../../../errors/custom-error";
 import { makePixProvider } from "./pix.factory";
 import {
   PaymentProvider,
   PaymentStatus,
   PaymentMethod,
-} from "../../generated/prisma/enums";
+} from "../../../generated/prisma/enums";
 
 type CreateOrGetPixPaymentResult = {
   paymentId: string;
@@ -88,7 +88,7 @@ export class PixService {
 
     // 3) Criar Payment "local" primeiro (snapshot + idempotência no DB)
     // providerPaymentId ainda não existe aqui
-    let payment = await prisma.payment.create({
+    const payment = await prisma.payment.create({
       data: {
         sessionId: session.id,
         method: PaymentMethod.PIX,
@@ -109,7 +109,7 @@ export class PixService {
     });
 
     // 5) Persistir resposta do provider (Payment + PixPayment)
-    payment = await prisma.payment.update({
+    const paymentWithPix = await prisma.payment.update({
       where: { id: payment.id },
       data: {
         providerPaymentId: charge.providerPaymentId,
@@ -125,22 +125,26 @@ export class PixService {
     });
 
     return {
-      paymentId: payment.id,
-      providerPaymentId: payment.providerPaymentId ?? null,
-      status: payment.status,
-      amountCents: payment.amountCents,
-      currency: payment.currency,
+      paymentId: paymentWithPix.id,
+      providerPaymentId: paymentWithPix.providerPaymentId ?? null,
+      status: paymentWithPix.status,
+      amountCents: paymentWithPix.amountCents,
+      currency: paymentWithPix.currency,
       pix: (() => {
-        if (!payment.pix || !payment.pix.qrCode || !payment.pix.expiresAt) {
+        if (
+          !paymentWithPix.pix ||
+          !paymentWithPix.pix.qrCode ||
+          !paymentWithPix.pix.expiresAt
+        ) {
           throw new CustomError(
             "PIX payment stored without required fields",
             500,
           );
         }
         return {
-          copyPaste: payment.pix.copyPaste,
-          qrCode: payment.pix.qrCode,
-          expiresAt: payment.pix.expiresAt.toISOString(),
+          copyPaste: paymentWithPix.pix.copyPaste,
+          qrCode: paymentWithPix.pix.qrCode,
+          expiresAt: paymentWithPix.pix.expiresAt.toISOString(),
         };
       })(),
     };

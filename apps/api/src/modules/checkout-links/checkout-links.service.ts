@@ -1,9 +1,26 @@
 import { CustomError } from "../../errors/custom-error";
 import { prisma } from "../../lib/prisma";
 
+type Capability = {
+  type: "PAY_PIX" | "PAY_CARD" | "PAY_CRYPTO";
+  enabled: boolean;
+  metadata?: unknown | null;
+};
+
+type PaymentMethodConfig = {
+  enabled: boolean;
+  metadata?: unknown;
+};
+
+export type PaymentMethodsAllowed = {
+  pix: PaymentMethodConfig;
+  card: PaymentMethodConfig;
+  crypto: PaymentMethodConfig;
+};
+
 //functions to create slug url correctly
-function buildPaymentsMethod(capabilities: any[]) {
-  const methods: any = {
+function buildPaymentsMethod(capabilities: Capability[]): PaymentMethodsAllowed {
+  const methods: PaymentMethodsAllowed = {
     pix: { enabled: false },
     card: { enabled: false },
     crypto: { enabled: false },
@@ -133,9 +150,14 @@ export async function createCheckoutLink(input: CreateCheckoutLinkInput) {
       });
 
       return link;
-    } catch (err: any) {
+    } catch (err: unknown) {
       // P2002 = unique constraint failed
-      if (err?.code === "P2002") continue;
+      const isUniqueConstraint =
+        typeof err === "object" &&
+        err !== null &&
+        "code" in err &&
+        (err as { code?: string }).code === "P2002";
+      if (isUniqueConstraint) continue;
       throw err;
     }
   }

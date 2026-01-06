@@ -2,13 +2,19 @@ import { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { prisma } from "../../../lib/prisma";
 import { SlugParamsSchema } from "../checkout-links.schema";
-import { resolvePublicCheckoutBySlug } from "../checkout-links.service";
+import {
+  PaymentMethodsAllowed,
+  resolvePublicCheckoutBySlug,
+} from "../checkout-links.service";
 import { getCheckoutSessionCookieName } from "./checkout-session.service";
 import { CustomerSchema, MethodSchema } from "./checkout-session.schema";
 
 /* ----------------------------- HELPERS ------------------------------ */
 
-function isMethodEnabled(methods: any, method: "PIX" | "CARD" | "CRYPTO") {
+function isMethodEnabled(
+  methods: PaymentMethodsAllowed,
+  method: "PIX" | "CARD" | "CRYPTO",
+) {
   if (method === "PIX") return !!methods?.pix?.enabled;
   if (method === "CARD") return !!methods?.card?.enabled;
   if (method === "CRYPTO") return !!methods?.crypto?.enabled;
@@ -29,7 +35,8 @@ export async function checkoutSessionPublicRoutes(app: FastifyInstance) {
     const payload = await resolvePublicCheckoutBySlug({ slug });
 
     const cookieName = getCheckoutSessionCookieName();
-    const sessionId = (req.cookies as any)?.[cookieName] as string | undefined;
+    const cookies = req.cookies as Record<string, string | undefined> | undefined;
+    const sessionId = cookies?.[cookieName];
 
     if (!sessionId) {
       return res.status(401).send({ message: "Missing session" });
@@ -86,7 +93,8 @@ export async function checkoutSessionPublicRoutes(app: FastifyInstance) {
     }
 
     const cookieName = getCheckoutSessionCookieName();
-    const sessionId = (req.cookies as any)?.[cookieName] as string | undefined;
+    const cookies = req.cookies as Record<string, string | undefined> | undefined;
+    const sessionId = cookies?.[cookieName];
 
     if (!sessionId) {
       return res.status(401).send({ message: "Missing session" });
